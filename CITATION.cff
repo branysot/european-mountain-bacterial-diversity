@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this code or the processed analysis inputs, please cite the associated article."
+title: "Bacterial Diversity Patterns and Their Environmental Predictors in European Mountain Forest Habitats: analysis code"
+type: software
+authors:
+  - family-names: Mokos
+    given-names: Tereza
+  - family-names: Barbi
+    given-names: Florian
+  - family-names: Martinović
+    given-names: Tijana
+  - family-names: Odriozola
+    given-names: Iñaki
+  - family-names: Moravcová
+    given-names: Andrea
+  - family-names: Brabcová
+    given-names: Vendula
+  - family-names: Mészárosová
+    given-names: Lenka
+  - family-names: Thoen
+    given-names: Ella
+  - family-names: Baldrian
+    given-names: Petr
+  - family-names: Kohout
+    given-names: Petr
+repository-code: "https://github.com/branysot/european-mountain-bacterial-diversity"
+license: MIT
+version: 1.0.0
+date-released: 2026-08-12

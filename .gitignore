@@ -1,0 +1,8 @@
+.DS_Store
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+.Rlib/
+results/
+*.Rproj

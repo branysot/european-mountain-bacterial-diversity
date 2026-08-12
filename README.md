@@ -8,8 +8,6 @@ Reproducible R code and processed analysis inputs for the article **“Bacterial
 
 The study compares bacterial alpha diversity in paired forest litter and soil samples collected across 17 European mountain areas. It evaluates habitat differences, latitudinal and elevational patterns, phylum-level responses, environmental correlates, and habitat-specific Random Forest predictors.
 
-![Top environmental predictors of bacterial diversity in litter and soil](docs/figures/Fig5_random_forest.png)
-
 ## Repository contents
 
 ```text
@@ -19,7 +17,6 @@ The study compares bacterial alpha diversity in paired forest litter and soil sa
 ├── data/
 │   ├── phyloseq_16S_OTU.rds
 │   └── canopy_vegetation.csv
-├── docs/figures/
 ├── CITATION.cff
 └── LICENSE
 ```

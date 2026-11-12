@@ -572,12 +572,14 @@ fig1 <- ggplot(habitat_data, aes(habitat, shannon, fill = habitat)) +
   stat_summary(fun = mean, geom = "point", shape = 23, size = 3,
                fill = "white", color = "black") +
   geom_text(data = habitat_labels, aes(x = habitat, y = y, label = label),
-            inherit.aes = FALSE, size = 6) +
+            inherit.aes = FALSE, size = 5, fontface = "bold") +
   scale_fill_manual(values = c(litter = "#01665e", soil = "#8c510a")) +
   coord_cartesian(ylim = c(NA, max(habitat_labels$y) + 0.08)) +
   labs(x = "Habitat", y = "Bacterial diversity (Shannon)") +
-  theme_classic(base_size = 13) +
-  theme(legend.position = "none")
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(size = 16),
+        axis.title = element_text(size = 14))
 
 ggsave(file.path(figure_dir, "Fig1.pdf"), fig1,
        width = 6, height = 5, device = grDevices::pdf)
@@ -1226,12 +1228,12 @@ make_phylum_figure <- function(gradient = c("Elevation_relative", "Latitude")) {
       trend$phylum <- phylum_name
       trend$habitat <- factor(habitat_name, levels = c("litter", "soil"))
       smooth_layers[[paste0(key, "_band")]] <- geom_ribbon(
-        data = trend, aes(x = x, ymin = lower, ymax = upper, fill = habitat),
-        inherit.aes = FALSE, alpha = 0.2, show.legend = FALSE
+        data = trend, aes(x = x, ymin = lower, ymax = upper, group = habitat),
+        inherit.aes = FALSE, fill = "grey60", alpha = 0.3, show.legend = FALSE
       )
       smooth_layers[[paste0(key, "_line")]] <- geom_line(
         data = trend, aes(x = x, y = q1, color = habitat),
-        inherit.aes = FALSE, linewidth = 0.8, show.legend = FALSE
+        inherit.aes = FALSE, linewidth = 1.1, show.legend = TRUE
       )
     }
   }
@@ -1248,18 +1250,19 @@ make_phylum_figure <- function(gradient = c("Elevation_relative", "Latitude")) {
 
   figure <- ggplot(plot_data, aes(x = .data[[gradient]], y = q1,
                                   color = habitat)) +
-    geom_point(aes(alpha = significant), size = 1.5) +
+    geom_point(aes(alpha = significant), size = 2.2) +
     scale_alpha_manual(values = c(`TRUE` = 0.95, `FALSE` = 0.25), guide = "none") +
     scale_color_manual(values = c(litter = "#01665e", soil = "#8c510a"),
                        labels = c(litter = "Litter", soil = "Soil")) +
-    scale_fill_manual(values = c(litter = "#01665e", soil = "#8c510a"), guide = "none") +
     facet_wrap(~phylum, scales = "free_y", ncol = 3) +
     labs(
       x = if (gradient == "Elevation_relative") "Elevation" else "Latitude (°)",
       y = "Hill number q=1", color = "Sample Type"
     ) +
-    theme_figures(10) +
-    theme(legend.position = "bottom")
+    theme_figures(12) +
+    theme(legend.position = "bottom",
+          legend.title = element_text(face = "plain"),
+          legend.key = element_rect(fill = "grey85", color = NA))
   for (layer in smooth_layers) {
     layer$data$phylum <- factor(layer$data$phylum, levels = phylum_levels)
     figure <- figure + layer
@@ -1269,8 +1272,8 @@ make_phylum_figure <- function(gradient = c("Elevation_relative", "Latitude")) {
     figure <- figure + geom_label(
       data = annotations,
       aes(x = x, y = y, label = label, color = habitat, hjust = hjust),
-      vjust = 1, fill = "white", linewidth = 0, size = 3,
-      inherit.aes = FALSE, show.legend = FALSE
+      vjust = 1, size = 3.6, fontface = "bold", fill = alpha("white", 0.7),
+      linewidth = 0, inherit.aes = FALSE, show.legend = FALSE
     )
   }
   figure
@@ -1445,9 +1448,11 @@ fig5 <- ggplot(rf_top10, aes(plot_label, importance, fill = category)) +
                                Soil = "#8B4513")) +
   labs(x = "Environmental Variables", y = "Variable Importance (%IncMSE)",
        fill = "Category") +
-  theme_minimal(base_size = 11) +
+  theme_minimal(base_size = 13) +
   theme(panel.grid.major.y = element_blank(), panel.grid.minor = element_blank(),
-        strip.text = element_text(face = "bold", size = 12),
+        strip.background = element_rect(fill = "grey93", color = NA),
+        strip.text = element_text(face = "bold", size = 13),
+        panel.spacing = grid::unit(2, "lines"),
         axis.title = element_text(face = "bold"),
         legend.title = element_text(face = "bold"))
 

@@ -1,45 +1,43 @@
-# Processed analysis inputs
+# Processed data
 
-This directory contains the compact inputs needed by `reproduce_analysis.R`.
+Inputs of `analysis.R`.
 
 ## `phyloseq_16S_OTU.rds`
 
-Processed bacterial community object containing:
+Processed bacterial community data:
 
-- an OTU count matrix;
-- SILVA-based taxonomic assignments; and
-- sample metadata, including habitat, location, elevation, climate, and soil properties.
+- OTU count matrix;
+- SILVA-based taxonomy; and
+- sample metadata: habitat, plot, location, coordinates, elevation, climate, and soil properties.
 
-The object contains 318 samples before the filtering and pairing steps applied by the analysis script. It is read directly from its stored components, so the `phyloseq` package is not required.
+The object holds 318 samples. The script excludes three litter samples with fewer than 5,000 sequences together with the soil samples of the same plots, which leaves 312 samples (156 litter and 156 soil) from 156 plots. The object is read from its stored components, so the `phyloseq` package is not required. The sample metadata contain further columns from the study database that are not used in this analysis.
 
 ## `canopy_vegetation.csv`
 
-Canopy species matrix (percentage canopy cover of each tree species within approximately 50 m of each plot) from the botanical survey. It was extracted from the `Vegetation_canopy` worksheet of the study metadata workbook. The script computes the canopy PCA from this file and uses the resulting scores in the Random Forest models. Rows of the G1 reference plots (no forest canopy) are excluded by the script.
+Canopy species matrix: percentage canopy cover of each tree species within approximately 50 m of each plot, from the botanical survey. The script uses it for the canopy PCA.
 
 ## `elevation_reference_plots.csv`
 
-Elevation and coordinates of the 50 G1 reference plots, the uppermost elevation level of each gradient. These plots were located at the local tree line and classified as above the tree line in the plot metadata; they had no forest litter and are therefore not part of the bacterial dataset. The highest G1 plot elevation of each location is the divisor used to compute relative elevation (see below and `results/tables/02_relative_elevation_divisors.csv`).
+Elevation and coordinates of the 50 plots of the uppermost elevation level (G1) of each gradient. These plots were located at the local tree line. They had no forest litter and are therefore not part of the bacterial dataset. The highest G1 plot elevation of each location is the divisor used to calculate relative elevation.
 
 ## `climate_CHELSA_by_plot.csv`
 
-The 19 CHELSA bioclimatic variables of each of the 156 analysed plots, with plot, location, coordinates (decimal degrees), and elevation (m a.s.l.). The values are the same as those stored in the sample metadata of `phyloseq_16S_OTU.rds` (the litter and soil samples of a plot share them) and are provided as a plain table for easy inspection; the script reads them from the `.rds` file. Variables and units are described under "Climate variables" below.
+The 19 CHELSA bioclimatic variables of each of the 156 analysed plots, with plot, location, coordinates (decimal degrees), and elevation (m a.s.l.). The same values are stored in the sample metadata of `phyloseq_16S_OTU.rds`, from which the script reads them; this table is provided for easy inspection.
 
-## Derived variables
+## Variables calculated by the script
 
-| Variable | Where it is derived | Definition |
+| Variable | Section of `analysis.R` | Definition |
 |---|---|---|
-| Relative elevation (`Elevation_relative`) | `reproduce_analysis.R`, section 3 | Plot elevation (m a.s.l.) divided by the highest elevation of the G1 reference plots of the same location. 0 = sea level; 1 = highest G1 reference plot. The script verifies that the result equals the `Elevation3` column stored in the metadata. |
-| Canopy PCA scores (`canopy_PC1`–`canopy_PC8`) | `reproduce_analysis.R`, section 5 | PCA (`vegan::rda`, `scale = TRUE`) of the canopy species matrix, all species included. The first eight axes explain 51.4% of the variance. |
-| Coverage-standardized diversity (`q1`) | `reproduce_analysis.R`, section 6 | Hill number of order q = 1 at 0.99 sample coverage (`iNEXT::estimateD`). |
-
-The metadata also contain the canopy scores used in the first submission (`PC1.x`–`PC8.x`). They were computed with *Betula pendula* inadvertently omitted and are used only to show the effect of the correction (results tables 07 and 22).
+| Relative elevation (`Elevation_relative`) | 3 | Plot elevation (m a.s.l.) divided by the highest elevation of the G1 reference plots of the same location. 0 = sea level; 1 = local tree line. The divisors are listed in `results/tables/02_relative_elevation_divisors.csv`. |
+| Canopy PCA scores (`canopy_PC1`–`canopy_PC8`) | 5 | PCA (`vegan::rda`, `scale = TRUE`) of the canopy species matrix. The first eight axes explain 51.4% of the variance. |
+| Coverage-standardized diversity (`q1`) | 6 | Hill number of order q = 1 at 0.99 sample coverage (`iNEXT::estimateD`). |
 
 ## Climate variables
 
-The 19 bioclimatic variables (columns `Annual_Mean_Temp` to `Precipitation_Coldest_Quarter`; `MAT` and `MAP` duplicate `Annual_Mean_Temp` and `Annual_Precipitation`) are CHELSA climatologies (Karger et al. 2017, *Scientific Data* 4:170122), extracted at the plot coordinates, as in Barbi et al. (2025, *New Phytologist*). Units: temperatures in °C, temperature seasonality as the standard deviation of monthly mean temperatures (°C), isothermality in %, precipitation in mm, and precipitation seasonality as the coefficient of variation (%). Because plots of the same elevation level usually fall within the same 30 arc-second grid cell, they share climate values. The values are supplied as extracted (see also `climate_CHELSA_by_plot.csv`); raster extraction is not part of this workflow.
+The 19 bioclimatic variables (columns `Annual_Mean_Temp` to `Precipitation_Coldest_Quarter`; `MAT` and `MAP` duplicate `Annual_Mean_Temp` and `Annual_Precipitation`) are CHELSA climatologies (Karger et al. 2017, *Scientific Data* 4:170122), extracted at the plot coordinates as in Barbi et al. (2025, *New Phytologist*). The values are supplied as extracted; the extraction is not part of `analysis.R`. Plots of the same elevation level usually fall within the same climate grid cell and therefore share climate values.
+
+Units: temperatures in °C; temperature seasonality as the standard deviation of monthly mean temperatures (°C); isothermality in %; precipitation in mm; precipitation seasonality as the coefficient of variation (%).
 
 ## Soil variables
 
-`pH` (water, 1:10), `c` (organic C), `n` (total N), `p_MEL` (Mehlich 3 available P) and `Ca` were measured on the composite soil sample of each plot, as described in the article.
-
-Raw sequence reads are available from [NCBI BioProject PRJNA1336446](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1336446).
+`pH` (in water, 1:10), `c` (organic C), `n` (total N), `p_MEL` (Mehlich 3 available P), and `Ca` were measured on the composite soil sample of each plot, as described in the article.

@@ -1,12 +1,8 @@
 #!/usr/bin/env Rscript
 
-# Installs the CRAN packages required by reproduce_analysis.R and reports any
-# difference from the versions used for the verified run
-# (results/package_versions.csv; R 4.5.2).
-#
-# MuMIn is no longer required: marginal and conditional R2 are computed
-# directly in reproduce_analysis.R. The remaining packages declare R >= 4.1 as
-# their minimum version.
+# Installs the CRAN packages required by analysis.R and reports any difference
+# from the versions used for the published results
+# (results/package_versions.csv; R 4.5.2). The packages require R >= 4.1.
 
 required_packages <- c(
   "iNEXT", "lme4", "lmerTest", "randomForest", "vegan",
@@ -14,7 +10,7 @@ required_packages <- c(
 )
 
 if (getRversion() < "4.1.0") {
-  stop("R >= 4.1.0 is required; the analysis was verified with R 4.5.2.")
+  stop("R >= 4.1.0 is required; the published results were produced with R 4.5.2.")
 }
 
 missing_packages <- required_packages[
@@ -35,18 +31,18 @@ script_dir <- if (length(script_arg) > 0L) {
 }
 versions_file <- file.path(script_dir, "results", "package_versions.csv")
 if (file.exists(versions_file)) {
-  verified <- read.csv(versions_file)
-  verified <- verified[verified$package %in% required_packages, ]
-  installed <- vapply(verified$package, function(x) {
+  published <- read.csv(versions_file)
+  published <- published[published$package %in% required_packages, ]
+  installed <- vapply(published$package, function(x) {
     tryCatch(as.character(utils::packageVersion(x)), error = function(e) NA_character_)
   }, character(1))
-  different <- is.na(installed) | installed != verified$version
+  different <- is.na(installed) | installed != published$version
   if (any(different)) {
-    message("Installed versions that differ from the verified run:")
-    print(data.frame(package = verified$package[different],
-                     verified = verified$version[different],
+    message("Installed versions that differ from those used for the published results:")
+    print(data.frame(package = published$package[different],
+                     published = published$version[different],
                      installed = installed[different]), row.names = FALSE)
   } else {
-    message("Installed versions match the verified run.")
+    message("Installed versions match those used for the published results.")
   }
 }

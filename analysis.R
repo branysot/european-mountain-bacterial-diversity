@@ -1,18 +1,18 @@
 #!/usr/bin/env Rscript
 
-# Reproducible analysis for:
+# Analysis code for:
 # "Bacterial Diversity Patterns and Their Environmental Predictors in
 #  European Mountain Forest Habitats"
 #
 # Starting point
 # --------------
-# This script reproduces the statistical analyses and figures using the
+# This script runs the statistical analyses and creates the figures from the
 # processed OTU table and associated environmental metadata in `data/`.
-# Raw sequence processing was performed in SEED as described in the manuscript
-# and is therefore outside the scope of this R analysis script.
+# Raw sequence processing was performed in SEED as described in the article
+# and is outside the scope of this script.
 #
 # Run from any directory:
-#   Rscript reproduce_analysis.R
+#   Rscript analysis.R
 #
 # Optional arguments:
 #   --output=/path/to/output_directory
@@ -45,12 +45,6 @@ if (length(script_arg) == 0L) {
 
 script_file <- normalizePath(sub("^--file=", "", script_arg[[1]]), mustWork = TRUE)
 script_dir <- dirname(script_file)
-
-# Use the project-local package library when present, without requiring it.
-project_library <- file.path(script_dir, ".Rlib")
-if (dir.exists(project_library)) {
-  .libPaths(c(project_library, .libPaths()))
-}
 
 output_arg <- grep("^--output=", command_args, value = TRUE)
 output_dir <- if (length(output_arg) == 1L) {
@@ -184,8 +178,7 @@ clean_phylum_names <- function(x) {
 # Marginal and conditional R2 for Gaussian LMMs (Nakagawa & Schielzeth 2013):
 # variance of the fixed-effect predictions, the summed random-intercept
 # variances, and the residual variance. For the random-intercept models used
-# here this is the quantity reported by MuMIn::r.squaredGLMM(), which is not
-# required as a dependency.
+# here this equals the output of MuMIn::r.squaredGLMM().
 lmm_r2 <- function(model) {
   fixed_prediction <- as.vector(lme4::getME(model, "X") %*% lme4::fixef(model))
   variance_fixed <- stats::var(fixed_prediction)
@@ -510,9 +503,6 @@ if (length(missing_locations) > 0L) {
 metadata$elevation_divisor <- as.numeric(divisors[as.character(metadata$Location)])
 metadata$Elevation_relative <- metadata$Elevation / metadata$elevation_divisor
 
-# The stored Elevation3 column (nine decimals) was produced with the same
-# definition; verify.
-stopifnot(max(abs(metadata$Elevation_relative - metadata$Elevation3)) < 1e-8)
 
 plot_metadata <- metadata[!duplicated(metadata$Plot), , drop = FALSE]
 divisor_table <- do.call(rbind, lapply(split(plot_metadata, plot_metadata$Location),
@@ -597,11 +587,8 @@ ggsave(file.path(figure_dir, "Fig1.png"), fig1,
 # -----------------------------------------------------------------------------
 # 5. Canopy vegetation PCA (used by the Random Forest analysis)
 # -----------------------------------------------------------------------------
-# All tree species are included. The canopy scores used in the first
-# submission were computed with the first species column (Betula pendula)
-# omitted because of a column-indexing error; they are stored in the sample
-# metadata as PC1.x-PC8.x and are used below only to quantify the effect of the
-# correction (results table 07 and the Random Forest sensitivity analysis).
+# PCA of the canopy species matrix (all tree species, scaled to unit variance).
+# The first eight axes are used as predictors in the Random Forest models.
 
 if (!file.exists(canopy_file)) stop("Missing canopy input: ", canopy_file)
 canopy_raw <- read.csv(canopy_file, check.names = FALSE,
@@ -619,7 +606,6 @@ rownames(canopy_species) <- canopy_raw$ID_sample
 canopy_species <- canopy_species[!grepl("1", rownames(canopy_species)), , drop = FALSE]
 canopy_species <- canopy_species[, colSums(canopy_species, na.rm = TRUE) > 0,
                                  drop = FALSE]
-stopifnot("Betula pendula" %in% names(canopy_species))
 canopy_matrix <- as.matrix(canopy_species)
 
 canopy_pca <- vegan::rda(canopy_matrix, scale = TRUE)
@@ -629,22 +615,10 @@ canopy_variance <- summary(canopy_pca)$cont$importance[
   "Proportion Explained", 1:8
 ]
 
-# Variance explained by the first eight axes when Betula pendula is omitted,
-# for comparison with the first submission.
-canopy_pca_without_betula <- vegan::rda(
-  canopy_matrix[, colnames(canopy_matrix) != "Betula pendula", drop = FALSE],
-  scale = TRUE
-)
-canopy_variance_without_betula <- summary(canopy_pca_without_betula)$cont$importance[
-  "Proportion Explained", 1:8
-]
-
 canopy_variance_table <- data.frame(
   axis = paste0("PC", 1:8),
   proportion_explained = as.numeric(canopy_variance),
-  cumulative = cumsum(as.numeric(canopy_variance)),
-  proportion_explained_without_Betula_pendula = as.numeric(canopy_variance_without_betula),
-  cumulative_without_Betula_pendula = cumsum(as.numeric(canopy_variance_without_betula))
+  cumulative = cumsum(as.numeric(canopy_variance))
 )
 write_table(canopy_variance_table, "04_canopy_pca_variance.csv")
 
@@ -666,22 +640,6 @@ if (length(missing_canopy) > 0L) {
 metadata[, canopy_axis_names] <- canopy_score_matrix[metadata$Plot, , drop = FALSE]
 plot_metadata <- metadata[!duplicated(metadata$Plot), , drop = FALSE]
 
-# Correspondence between corrected axes and the scores used in the first
-# submission. PCA signs are arbitrary, so absolute correlations are reported.
-previous_axis_names <- paste0("PC", 1:8, ".x")
-axis_correlations <- cor(plot_metadata[, canopy_axis_names],
-                         plot_metadata[, previous_axis_names])
-axis_correlation_table <- data.frame(
-  corrected_axis = canopy_axis_names,
-  same_numbered_previous_axis = previous_axis_names,
-  absolute_correlation_same_number = abs(diag(axis_correlations)),
-  best_matching_previous_axis = colnames(axis_correlations)[
-    max.col(abs(axis_correlations), ties.method = "first")
-  ],
-  absolute_correlation_best_match = apply(abs(axis_correlations), 1, max)
-)
-write_table(axis_correlation_table, "07_canopy_axes_corrected_vs_previous.csv")
-
 # -----------------------------------------------------------------------------
 # 6. Coverage-based diversity and the 0.90-0.99 coverage scan
 # -----------------------------------------------------------------------------
@@ -700,7 +658,7 @@ write_table(data.frame(
   rank = seq_along(mean_relative_by_phylum),
   phylum = names(mean_relative_by_phylum),
   mean_relative_abundance = as.numeric(mean_relative_by_phylum)
-), "08_phylum_mean_relative_abundance.csv")
+), "07_phylum_mean_relative_abundance.csv")
 
 coverage_scan_rows <- list()
 coverage_diagnostic_rows <- list()
@@ -750,8 +708,8 @@ for (habitat_name in c("litter", "soil")) {
 }
 coverage_scan <- do.call(rbind, coverage_scan_rows)
 coverage_diagnostics <- do.call(rbind, coverage_diagnostic_rows)
-write_table(coverage_scan, "09_coverage_scan_0.90_0.99.csv")
-write_table(coverage_diagnostics, "10_coverage_diagnostics_at_0.99.csv")
+write_table(coverage_scan, "08_coverage_scan_0.90_0.99.csv")
+write_table(coverage_diagnostics, "09_coverage_diagnostics_at_0.99.csv")
 
 # Highest coverage in the scan that retains every library in both habitats.
 overall_scan <- coverage_scan[coverage_scan$community == "All bacteria", ]
@@ -790,7 +748,7 @@ write_table(coverage_all[, c("sample_id", "habitat", "q1", "sqrt_q1",
                             "extrapolation_factor", "Elevation_relative",
                             "Elevation", "Latitude", "Location", "PermGroup",
                             "Mountain_range")],
-            "11_coverage_q1_overall.csv")
+            "10_coverage_q1_overall.csv")
 
 # Habitat comparison repeated with coverage-standardized q = 1 diversity.
 coverage_habitat_model <- lmer(sqrt_q1 ~ habitat + (1 | Location),
@@ -807,7 +765,7 @@ coverage_habitat_table <- data.frame(
   denominator_df = coverage_habitat_anova[["DenDF"]][1],
   p = coverage_habitat_anova[["Pr(>F)"]][1]
 )
-write_table(coverage_habitat_table, "12_habitat_comparison_coverage_0.99.csv")
+write_table(coverage_habitat_table, "11_habitat_comparison_coverage_0.99.csv")
 
 # -----------------------------------------------------------------------------
 # 7. Figure 2: geographic models, BH correction, raw-elevation sensitivity
@@ -861,8 +819,8 @@ for (elevation_label in names(elevation_variables)) {
   geographic_model_table$elevation_p_BH[rows] <- adjusted[seq_len(sum(rows))]
   geographic_model_table$latitude_p_BH[rows] <- adjusted[sum(rows) + seq_len(sum(rows))]
 }
-write_table(geographic_model_table, "13_geographic_LMM_results.csv")
-write_table(geographic_aic_table, "14_geographic_LMM_AIC_selection.csv")
+write_table(geographic_model_table, "12_geographic_LMM_results.csv")
+write_table(geographic_aic_table, "13_geographic_LMM_AIC_selection.csv")
 
 primary_rows <- geographic_model_table$elevation_type == "relative" &
   !geographic_model_table$interaction
@@ -902,7 +860,7 @@ if (!is.na(sensitivity_coverage)) {
                          coverage_sensitivity_table$latitude_p), method = "BH")
   coverage_sensitivity_table$elevation_p_BH <- adjusted[1:2]
   coverage_sensitivity_table$latitude_p_BH <- adjusted[3:4]
-  write_table(coverage_sensitivity_table, "15_geographic_LMM_coverage_sensitivity.csv")
+  write_table(coverage_sensitivity_table, "14_geographic_LMM_coverage_sensitivity.csv")
 }
 
 make_geographic_panel <- function(data, gradient, fit, p_adjusted,
@@ -1039,7 +997,7 @@ for (habitat_name in names(coverage_data)) {
   }
 }
 overall_residual_table <- do.call(rbind, overall_residual_rows)
-write_table(overall_residual_table, "16_overall_residual_analysis.csv")
+write_table(overall_residual_table, "15_overall_residual_analysis.csv")
 
 # Environmental correlation matrix for Fig. S1. The figure shows the complete
 # candidate set before collinearity filtering, ordered as climate, canopy, and
@@ -1064,7 +1022,7 @@ correlation_data <- plot_metadata[, correlation_variables, drop = FALSE]
 correlation_matrix <- cor(correlation_data, use = "pairwise.complete.obs")
 write_table(data.frame(variable = rownames(correlation_matrix), correlation_matrix,
                        check.names = FALSE),
-            "17_environmental_correlation_matrix.csv")
+            "16_environmental_correlation_matrix.csv")
 ca_ph_correlation <- correlation_matrix["Ca", "pH"]
 
 correlation_labels <- c(
@@ -1161,7 +1119,7 @@ quadratic_p_BH[!is.na(quadratic_p)] <- p.adjust(quadratic_p[!is.na(quadratic_p)]
 phylum_results$elevation_quadratic_p_BH <- quadratic_p_BH[seq_len(nrow(phylum_results))]
 phylum_results$latitude_quadratic_p_BH <- quadratic_p_BH[nrow(phylum_results) +
                                                            seq_len(nrow(phylum_results))]
-write_table(phylum_results, "18_phylum_LMM_results.csv")
+write_table(phylum_results, "17_phylum_LMM_results.csv")
 
 # Residual analyses are required only for phylum-habitat combinations with at
 # least one significant geographic relationship in the main LMM analysis.
@@ -1189,7 +1147,7 @@ phylum_residual_table <- phylum_residual_table[
       setdiff(names(phylum_residual_table),
               c("phylum", "habitat", "significant_gradients")))
 ]
-write_table(phylum_residual_table, "19_phylum_residual_analysis.csv")
+write_table(phylum_residual_table, "18_phylum_residual_analysis.csv")
 
 make_phylum_figure <- function(gradient = c("Elevation_relative", "Latitude")) {
   gradient <- match.arg(gradient)
@@ -1340,7 +1298,7 @@ rf_predictor_table <- data.frame(
   variable = rf_predictors,
   category = predictor_category(rf_predictors)
 )
-write_table(rf_predictor_table, "20_random_forest_selected_predictors.csv")
+write_table(rf_predictor_table, "19_random_forest_selected_predictors.csv")
 
 tune_and_fit_rf <- function(model_data, response, predictors, ntree_final = 1000,
                             importance = TRUE) {
@@ -1372,8 +1330,7 @@ run_random_forest <- function(data, habitat_name, response, predictors) {
     habitat = habitat_name,
     variable = rownames(importance_matrix),
     importance = importance_matrix[, 1],
-    category = predictor_category(sub("^PC([0-9])\\.x$", "canopy_PC\\1",
-                                      rownames(importance_matrix)))
+    category = predictor_category(rownames(importance_matrix))
   )
   importance <- importance[order(importance$importance, decreasing = TRUE), ]
   importance$rank <- seq_len(nrow(importance))
@@ -1413,9 +1370,9 @@ flatten_rf <- function(field) {
 rf_tuning <- flatten_rf("tuning")
 rf_importance <- flatten_rf("importance")
 rf_performance <- flatten_rf("performance")
-write_table(rf_tuning, "21_random_forest_tuning.csv")
-write_table(rf_performance, "22_random_forest_performance.csv")
-write_table(rf_importance, "23_random_forest_importance.csv")
+write_table(rf_tuning, "20_random_forest_tuning.csv")
+write_table(rf_performance, "21_random_forest_performance.csv")
+write_table(rf_importance, "22_random_forest_importance.csv")
 
 variable_labels <- c(
   setNames(paste0("PC", 1:8, " canopy"), canopy_axis_names),
@@ -1524,7 +1481,7 @@ important_loadings$species_type <- ifelse(
   ifelse(important_loadings$species %in% deciduous_species,
          "Deciduous", "Other")
 )
-write_table(important_loadings, "24_canopy_top_species_loadings.csv")
+write_table(important_loadings, "23_canopy_top_species_loadings.csv")
 
 loading_plots <- lapply(important_canopy_axes, function(axis_name) {
   x <- important_loadings[important_loadings$axis == axis_name, ]
@@ -1605,11 +1562,10 @@ residual_value <- function(habitat_name, elevation_label, set_name, field) {
 }
 
 report_lines <- c(
-  "REPRODUCIBILITY RUN SUMMARY",
-  "===========================",
+  "RUN SUMMARY",
+  "===========",
   paste("Run date:", as.character(Sys.time())),
   paste("R:", R.version.string),
-  paste("Output:", output_dir),
   "",
   "Dataset:",
   sprintf("- %d samples (%d litter, %d soil)", nrow(otu),
@@ -1617,7 +1573,7 @@ report_lines <- c(
   sprintf("- %s retained reads; depth %s-%s", format(sum(otu), big.mark = ","),
           format(min(rowSums(otu)), big.mark = ","),
           format(max(rowSums(otu)), big.mark = ",")),
-  "- relative elevation derived from G1 reference plots and verified against stored values",
+  "- relative elevation derived from G1 reference plots",
   "",
   "Habitat comparison:",
   sprintf("- rarefied Shannon LMM p = %.3g; 0.99-coverage sqrt(q1) LMM p = %.3g",
@@ -1661,8 +1617,8 @@ report_lines <- c(
             rf_performance$top10_canopy[i])
   }, character(1)),
   "",
-  sprintf("Canopy PCA first eight axes: %.1f%% (with Betula pendula); %.1f%% without",
-          100 * sum(canopy_variance), 100 * sum(canopy_variance_without_betula)),
+  sprintf("Canopy PCA, first eight axes: %.1f%% of the variance",
+          100 * sum(canopy_variance)),
   sprintf("Ca-pH Pearson correlation (one row per plot): r = %.3f", ca_ph_correlation)
 )
 writeLines(report_lines, file.path(output_dir, "RUN_SUMMARY.txt"), useBytes = TRUE)

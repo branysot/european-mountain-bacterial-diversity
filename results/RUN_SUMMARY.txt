@@ -1,13 +1,12 @@
-REPRODUCIBILITY RUN SUMMARY
-===========================
-Run date: 2026-11-12 12:41:43.168135
+RUN SUMMARY
+===========
+Run date: 2026-11-12 15:42:50.864851
 R: R version 4.5.2 (2025-10-31)
-Output: /Users/terka/Clanky/MBU/Round2_revision/code/results
 
 Dataset:
 - 312 samples (156 litter, 156 soil)
 - 3,993,630 retained reads; depth 5,061-34,526
-- relative elevation derived from G1 reference plots and verified against stored values
+- relative elevation derived from G1 reference plots
 
 Habitat comparison:
 - rarefied Shannon LMM p = 6.15e-10; 0.99-coverage sqrt(q1) LMM p = 3.59e-11
@@ -33,5 +32,5 @@ Random Forest (rarefied Shannon diversity):
 - litter: OOB R2 = 0.352; canopy axes in top 10 = 7
 - soil: OOB R2 = 0.494; canopy axes in top 10 = 1
 
-Canopy PCA first eight axes: 51.4% (with Betula pendula); 52.9% without
+Canopy PCA, first eight axes: 51.4% of the variance
 Ca-pH Pearson correlation (one row per plot): r = 0.644

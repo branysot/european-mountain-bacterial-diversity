@@ -863,9 +863,16 @@ if (!is.na(sensitivity_coverage)) {
   write_table(coverage_sensitivity_table, "14_geographic_LMM_coverage_sensitivity.csv")
 }
 
-make_geographic_panel <- function(data, gradient, fit, p_adjusted,
-                                  show_legend = FALSE) {
-  test <- if (gradient == "Elevation_relative") fit$elevation else fit$latitude
+# Colours of the mountain ranges (colour-blind-friendly palette).
+mountain_range_colors <- c(
+  Alps = "#000000", Baetic_System = "#E69F00", Carpathian_Mountains = "#56B4E9",
+  Dinaric_Alps = "#009E73", Harz_Mountains = "#F0E442",
+  Iceland_Mountains = "#0072B2", Pyrenees = "#D55E00", Rila_Rhodopes = "#CC79A7",
+  Scandinavian_Mountains = "#999999", Taygetos_Mountains = "#44AA99"
+)
+stopifnot(all(unique(metadata$Mountain_range) %in% names(mountain_range_colors)))
+
+make_geographic_panel <- function(data, gradient, fit, p_adjusted) {
   label <- NULL
   significant <- !is.na(p_adjusted) && p_adjusted < 0.05
   if (significant) {
@@ -877,30 +884,43 @@ make_geographic_panel <- function(data, gradient, fit, p_adjusted,
   }
 
   panel <- ggplot(data, aes(x = .data[[gradient]], y = q1,
-                            color = Mountain_range)) +
-    geom_point(alpha = 0.72, size = 1.8) +
-    scale_color_brewer(palette = "Paired") +
-    labs(
-      x = if (gradient == "Elevation_relative") "Relative elevation" else "Latitude",
-      y = "Hill number q=1",
-      color = "Mountain Range"
-    ) +
-    theme_figures(10) +
-    theme(legend.position = if (show_legend) "right" else "none")
-
+                            color = Mountain_range))
   if (significant) {
     trend <- lmm_trend(fit$best_model, data, gradient)
     panel <- panel +
       geom_ribbon(data = trend, aes(x = x, ymin = lower, ymax = upper),
-                  inherit.aes = FALSE, fill = "grey65", alpha = 0.4) +
+                  inherit.aes = FALSE, fill = "grey60", alpha = 0.35) +
       geom_line(data = trend, aes(x = x, y = q1), inherit.aes = FALSE,
-                color = "black", linewidth = 0.7) +
-      annotate(
-      "text",
-      x = if (gradient == "Elevation_relative") min(data[[gradient]]) else max(data[[gradient]]),
-      y = max(data$q1), label = label,
-      hjust = if (gradient == "Elevation_relative") 0 else 1, vjust = 1, size = 3.5
+                color = "black", linewidth = 0.5)
+  }
+  panel <- panel +
+    geom_point(alpha = 0.7, size = 2.4, shape = 16) +
+    scale_color_manual(values = mountain_range_colors,
+                       labels = function(x) gsub("_", " ", x),
+                       limits = names(mountain_range_colors)) +
+    labs(
+      x = if (gradient == "Elevation_relative") "Elevation" else "Latitude",
+      y = "Hill number q=1",
+      color = "Mountain Range"
+    ) +
+    guides(color = guide_legend(override.aes = list(size = 4, alpha = 0.8))) +
+    theme_bw(base_size = 11, base_family = "serif") +
+    theme(
+      panel.grid.minor = element_blank(),
+      plot.title = element_text(size = 18, hjust = 0.5),
+      plot.tag = element_text(size = 18),
+      plot.tag.position = c(0.01, 0.985),
+      legend.title = element_text(size = 16),
+      legend.text = element_text(size = 15)
     )
+  if (significant) {
+    panel <- panel +
+      annotate(
+        "text",
+        x = if (gradient == "Elevation_relative") min(data[[gradient]]) else max(data[[gradient]]),
+        y = max(data$q1), label = label, family = "serif",
+        hjust = if (gradient == "Elevation_relative") 0 else 1, vjust = 1, size = 4.5
+      )
   }
   panel
 }
@@ -910,7 +930,7 @@ fig2a <- make_geographic_panel(coverage_data$litter, "Elevation_relative",
                                primary_p_BH$litter$elevation_p_BH)
 fig2b <- make_geographic_panel(coverage_data$litter, "Latitude",
                                relative_additive_fits$litter,
-                               primary_p_BH$litter$latitude_p_BH, show_legend = TRUE)
+                               primary_p_BH$litter$latitude_p_BH)
 fig2c <- make_geographic_panel(coverage_data$soil, "Elevation_relative",
                                relative_additive_fits$soil,
                                primary_p_BH$soil$elevation_p_BH)
@@ -918,15 +938,25 @@ fig2d <- make_geographic_panel(coverage_data$soil, "Latitude",
                                relative_additive_fits$soil,
                                primary_p_BH$soil$latitude_p_BH)
 
-fig2 <- ((fig2a + ggtitle("a) Elevation - Litter")) |
-           (fig2b + ggtitle("b) Latitude - Litter"))) /
-  ((fig2c + ggtitle("c) Elevation - Soil")) |
-     (fig2d + ggtitle("d) Latitude - Soil"))) +
-  plot_annotation(theme = theme(plot.title = element_text(face = "bold")))
+# Rows: litter (a, b) and soil (c, d); columns: elevation and latitude.
+habitat_label <- function(text) {
+  wrap_elements(full = grid::textGrob(
+    text, rot = 90, gp = grid::gpar(fontfamily = "serif", fontsize = 20)
+  ))
+}
+fig2 <- wrap_plots(
+  habitat_label("Litter"),
+  fig2a + labs(tag = "a)", title = "Elevation"),
+  fig2b + labs(tag = "b)", title = "Latitude"),
+  habitat_label("Soil"),
+  fig2c + labs(tag = "c)", title = " "),
+  fig2d + labs(tag = "d)", title = " "),
+  ncol = 3, widths = c(0.06, 1, 1), guides = "collect"
+) & theme(legend.position = "right")
 ggsave(file.path(figure_dir, "Fig2.pdf"), fig2,
-       width = 13.5, height = 9.5, device = grDevices::pdf)
+       width = 14.5, height = 8.8, device = grDevices::pdf)
 ggsave(file.path(figure_dir, "Fig2.png"), fig2,
-       width = 13.5, height = 9.5, dpi = 180)
+       width = 14.5, height = 8.8, dpi = 180)
 
 # -----------------------------------------------------------------------------
 # 8. Residual analyses: climate, soil, and combined environmental models
@@ -1209,6 +1239,12 @@ make_phylum_figure <- function(gradient = c("Elevation_relative", "Latitude")) {
   plot_data <- do.call(rbind, plot_rows)
   annotations <- do.call(rbind, annotation_rows)
   plot_data$habitat <- factor(plot_data$habitat, levels = c("litter", "soil"))
+  # Panels in alphabetical order, independent of the system locale.
+  phylum_levels <- sort(unique(plot_data$phylum), method = "radix")
+  plot_data$phylum <- factor(plot_data$phylum, levels = phylum_levels)
+  if (!is.null(annotations)) {
+    annotations$phylum <- factor(annotations$phylum, levels = phylum_levels)
+  }
 
   figure <- ggplot(plot_data, aes(x = .data[[gradient]], y = q1,
                                   color = habitat)) +
@@ -1219,12 +1255,15 @@ make_phylum_figure <- function(gradient = c("Elevation_relative", "Latitude")) {
     scale_fill_manual(values = c(litter = "#01665e", soil = "#8c510a"), guide = "none") +
     facet_wrap(~phylum, scales = "free_y", ncol = 3) +
     labs(
-      x = if (gradient == "Elevation_relative") "Relative elevation" else "Latitude (°)",
+      x = if (gradient == "Elevation_relative") "Elevation" else "Latitude (°)",
       y = "Hill number q=1", color = "Sample Type"
     ) +
     theme_figures(10) +
     theme(legend.position = "bottom")
-  for (layer in smooth_layers) figure <- figure + layer
+  for (layer in smooth_layers) {
+    layer$data$phylum <- factor(layer$data$phylum, levels = phylum_levels)
+    figure <- figure + layer
+  }
 
   if (!is.null(annotations) && nrow(annotations) > 0L) {
     figure <- figure + geom_label(

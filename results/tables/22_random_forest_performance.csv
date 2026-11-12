@@ -1,0 +1,3 @@
+"habitat","response","n_samples","n_predictors","ntree","mtry","OOB_RMSE","OOB_R2","top10_canopy","top10_climate","top10_soil"
+"litter","shannon_rarefied",156,18,1000,5,0.40349692706648,0.352209781752551,7,1,2
+"soil","shannon_rarefied",156,18,1000,5,0.250819360519679,0.493933820681588,1,5,4

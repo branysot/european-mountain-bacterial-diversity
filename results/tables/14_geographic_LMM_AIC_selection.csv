@@ -1,0 +1,33 @@
+"habitat","elevation_type","interaction","model","formula","AIC","selected_within_set","delta_AIC_all_eight","selected_among_all_eight"
+"litter","relative",FALSE,"M1","sqrt_q1 ~ poly(Elevation_relative, 2) + poly(Latitude, 2) + (1 |      PermGroup) + (1 | Location)",949.638050085983,FALSE,3.02167801002906,FALSE
+"litter","relative",FALSE,"M2","sqrt_q1 ~ poly(Elevation_relative, 2) + Latitude + (1 | PermGroup) +      (1 | Location)",947.781680369986,FALSE,1.165308294032,FALSE
+"litter","relative",FALSE,"M3","sqrt_q1 ~ Elevation_relative + poly(Latitude, 2) + (1 | PermGroup) +      (1 | Location)",948.388401230906,FALSE,1.77202915495241,FALSE
+"litter","relative",FALSE,"M4","sqrt_q1 ~ Elevation_relative + Latitude + (1 | PermGroup) + (1 |      Location)",946.616372075954,TRUE,0,TRUE
+"litter","relative",TRUE,"M1","sqrt_q1 ~ poly(Elevation_relative, 2) * poly(Latitude, 2) + (1 |      PermGroup) + (1 | Location)",956.22770507986,FALSE,9.61133300390645,FALSE
+"litter","relative",TRUE,"M2","sqrt_q1 ~ poly(Elevation_relative, 2) * Latitude + (1 | PermGroup) +      (1 | Location)",951.035371423644,FALSE,4.41899934768992,FALSE
+"litter","relative",TRUE,"M3","sqrt_q1 ~ Elevation_relative * poly(Latitude, 2) + (1 | PermGroup) +      (1 | Location)",951.992112780983,FALSE,5.37574070502956,FALSE
+"litter","relative",TRUE,"M4","sqrt_q1 ~ Elevation_relative * Latitude + (1 | PermGroup) + (1 |      Location)",948.614340041542,TRUE,1.99796796558849,FALSE
+"litter","raw",FALSE,"M1","sqrt_q1 ~ poly(Elevation, 2) + poly(Latitude, 2) + (1 | PermGroup) +      (1 | Location)",951.274590047094,FALSE,3.51147532874882,FALSE
+"litter","raw",FALSE,"M2","sqrt_q1 ~ poly(Elevation, 2) + Latitude + (1 | PermGroup) + (1 |      Location)",949.314366396786,FALSE,1.55125167844017,FALSE
+"litter","raw",FALSE,"M3","sqrt_q1 ~ Elevation + poly(Latitude, 2) + (1 | PermGroup) + (1 |      Location)",949.569661794067,FALSE,1.80654707572171,FALSE
+"litter","raw",FALSE,"M4","sqrt_q1 ~ Elevation + Latitude + (1 | PermGroup) + (1 | Location)",947.763114718346,TRUE,0,TRUE
+"litter","raw",TRUE,"M1","sqrt_q1 ~ poly(Elevation, 2) * poly(Latitude, 2) + (1 | PermGroup) +      (1 | Location)",952.272740866399,FALSE,4.50962614805383,FALSE
+"litter","raw",TRUE,"M2","sqrt_q1 ~ poly(Elevation, 2) * Latitude + (1 | PermGroup) + (1 |      Location)",949.590731069525,TRUE,1.82761635117959,FALSE
+"litter","raw",TRUE,"M3","sqrt_q1 ~ Elevation * poly(Latitude, 2) + (1 | PermGroup) + (1 |      Location)",950.020571363541,FALSE,2.25745664519513,FALSE
+"litter","raw",TRUE,"M4","sqrt_q1 ~ Elevation * Latitude + (1 | PermGroup) + (1 | Location)",949.615770921087,FALSE,1.85265620274185,FALSE
+"soil","relative",FALSE,"M1","sqrt_q1 ~ poly(Elevation_relative, 2) + poly(Latitude, 2) + (1 |      PermGroup) + (1 | Location)",866.975370327487,FALSE,2.83666968026807,FALSE
+"soil","relative",FALSE,"M2","sqrt_q1 ~ poly(Elevation_relative, 2) + Latitude + (1 | PermGroup) +      (1 | Location)",865.689525809883,FALSE,1.55082516266373,FALSE
+"soil","relative",FALSE,"M3","sqrt_q1 ~ Elevation_relative + poly(Latitude, 2) + (1 | PermGroup) +      (1 | Location)",865.519663172388,FALSE,1.38096252516914,FALSE
+"soil","relative",FALSE,"M4","sqrt_q1 ~ Elevation_relative + Latitude + (1 | PermGroup) + (1 |      Location)",864.138700647219,TRUE,0,TRUE
+"soil","relative",TRUE,"M1","sqrt_q1 ~ poly(Elevation_relative, 2) * poly(Latitude, 2) + (1 |      PermGroup) + (1 | Location)",873.93990750892,FALSE,9.80120686170164,FALSE
+"soil","relative",TRUE,"M2","sqrt_q1 ~ poly(Elevation_relative, 2) * Latitude + (1 | PermGroup) +      (1 | Location)",869.240805475734,FALSE,5.10210482851494,FALSE
+"soil","relative",TRUE,"M3","sqrt_q1 ~ Elevation_relative * poly(Latitude, 2) + (1 | PermGroup) +      (1 | Location)",868.399924383398,FALSE,4.26122373617943,FALSE
+"soil","relative",TRUE,"M4","sqrt_q1 ~ Elevation_relative * Latitude + (1 | PermGroup) + (1 |      Location)",865.66718511985,TRUE,1.52848447263136,FALSE
+"soil","raw",FALSE,"M1","sqrt_q1 ~ poly(Elevation, 2) + poly(Latitude, 2) + (1 | PermGroup) +      (1 | Location)",867.34179175575,FALSE,3.11275843723342,FALSE
+"soil","raw",FALSE,"M2","sqrt_q1 ~ poly(Elevation, 2) + Latitude + (1 | PermGroup) + (1 |      Location)",865.779390357785,FALSE,1.55035703926785,FALSE
+"soil","raw",FALSE,"M3","sqrt_q1 ~ Elevation + poly(Latitude, 2) + (1 | PermGroup) + (1 |      Location)",865.578995393518,FALSE,1.34996207500137,FALSE
+"soil","raw",FALSE,"M4","sqrt_q1 ~ Elevation + Latitude + (1 | PermGroup) + (1 | Location)",864.229033318517,TRUE,0,TRUE
+"soil","raw",TRUE,"M1","sqrt_q1 ~ poly(Elevation, 2) * poly(Latitude, 2) + (1 | PermGroup) +      (1 | Location)",874.028372039204,FALSE,9.79933872068773,FALSE
+"soil","raw",TRUE,"M2","sqrt_q1 ~ poly(Elevation, 2) * Latitude + (1 | PermGroup) + (1 |      Location)",868.87176613785,FALSE,4.64273281933333,FALSE
+"soil","raw",TRUE,"M3","sqrt_q1 ~ Elevation * poly(Latitude, 2) + (1 | PermGroup) + (1 |      Location)",868.671901104551,FALSE,4.44286778603396,FALSE
+"soil","raw",TRUE,"M4","sqrt_q1 ~ Elevation * Latitude + (1 | PermGroup) + (1 | Location)",866.040375087304,TRUE,1.81134176878777,FALSE

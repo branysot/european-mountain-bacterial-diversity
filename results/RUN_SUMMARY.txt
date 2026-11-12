@@ -1,0 +1,37 @@
+REPRODUCIBILITY RUN SUMMARY
+===========================
+Run date: 2026-11-12 12:41:43.168135
+R: R version 4.5.2 (2025-10-31)
+Output: /Users/terka/Clanky/MBU/Round2_revision/code/results
+
+Dataset:
+- 312 samples (156 litter, 156 soil)
+- 3,993,630 retained reads; depth 5,061-34,526
+- relative elevation derived from G1 reference plots and verified against stored values
+
+Habitat comparison:
+- rarefied Shannon LMM p = 6.15e-10; 0.99-coverage sqrt(q1) LMM p = 3.59e-11
+
+Coverage:
+- median observed coverage: litter 0.930, soil 0.918
+- sensitivity coverage reached by all libraries within 2x reads: 0.9
+
+Primary geographic LMMs (relative elevation, additive; p and BH-adjusted p):
+- litter: elevation p = 0.2945 (BH 0.2945); latitude p = 0.0017 (BH 0.0068)
+- soil: elevation p = 0.0193 (BH 0.0387); latitude p = 0.1951 (BH 0.2602)
+- raw elevation: litter latitude p = 0.0163; soil elevation p = 0.0206
+
+Residual analyses (litter latitude p / soil elevation p):
+- relative elevation, climate: litter latitude p = 0.035; soil elevation p = 0.975
+- relative elevation, soil: litter latitude p = 0.025; soil elevation p = 0.037
+- relative elevation, combined: litter latitude p = 0.506; soil elevation p = 0.753
+- raw elevation, climate: litter latitude p = 0.226; soil elevation p = 0.472
+- raw elevation, soil: litter latitude p = 0.127; soil elevation p = 0.038
+- raw elevation, combined: litter latitude p = 0.720; soil elevation p = 0.247
+
+Random Forest (rarefied Shannon diversity):
+- litter: OOB R2 = 0.352; canopy axes in top 10 = 7
+- soil: OOB R2 = 0.494; canopy axes in top 10 = 1
+
+Canopy PCA first eight axes: 51.4% (with Betula pendula); 52.9% without
+Ca-pH Pearson correlation (one row per plot): r = 0.644

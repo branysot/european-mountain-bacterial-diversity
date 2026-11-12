@@ -4,5 +4,5 @@
 .Ruserdata
 .Rproj.user/
 .Rlib/
-results/
+results/models/
 *.Rproj

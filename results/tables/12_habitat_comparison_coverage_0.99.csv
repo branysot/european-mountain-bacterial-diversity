@@ -1,0 +1,2 @@
+"response","n_litter","n_soil","mean_q1_litter","mean_q1_soil","soil_minus_litter_estimate","F_value","denominator_df","p"
+"sqrt(q = 1) at 0.99 coverage",156,156,480.037958288482,635.178001816039,3.57141341219169,47.3384533491276,294.758712940829,3.58684262667529e-11
